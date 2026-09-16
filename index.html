@@ -106,28 +106,6 @@
     </div>
 
     <div class="mb-8">
-      <h3 class="text-white text-xl font-bold mb-4">Quick Actions</h3>
-      <div class="flex gap-4 overflow-x-auto pb-2">
-        <button class="bg-[#1A1A1A] rounded-xl p-4 flex items-center gap-2 border border-[#2A2A2A] whitespace-nowrap">
-          <i data-lucide="eraser" class="text-pink-400 w-5 h-5"></i>
-          <span class="text-white font-semibold">Remove Object</span>
-        </button>
-        <button class="bg-[#1A1A1A] rounded-xl p-4 flex items-center gap-2 border border-[#2A2A2A] whitespace-nowrap">
-          <i data-lucide="image" class="text-pink-400 w-5 h-5"></i>
-          <span class="text-white font-semibold">Change Background</span>
-        </button>
-        <button class="bg-[#1A1A1A] rounded-xl p-4 flex items-center gap-2 border border-[#2A2A2A] whitespace-nowrap">
-          <i data-lucide="sparkles" class="text-pink-400 w-5 h-5"></i>
-          <span class="text-white font-semibold">AI Looks</span>
-        </button>
-        <button class="bg-[#1A1A1A] rounded-xl p-4 flex items-center gap-2 border border-[#2A2A2A] whitespace-nowrap">
-          <i data-lucide="smile" class="text-pink-400 w-5 h-5"></i>
-          <span class="text-white font-semibold">Face Details</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="mb-8">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-white text-xl font-bold">My Creations</h3>
         <button class="text-pink-400 text-sm">See All</button>
@@ -158,11 +136,10 @@
       </div>
       <img id="preview-image" class="hidden max-w-full max-h-96 rounded-2xl object-contain">
       
-      <!-- شاشة التحميل -->
       <div id="loading-container" class="hidden flex-col items-center justify-center text-center">
         <div class="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-white font-bold text-lg">جاري تحميل نموذج الذكاء الاصطناعي...</p>
-        <p class="text-gray-400 text-sm mt-2">أول مرة فقط قد تستغرق 30-60 ثانية</p>
+        <p class="text-white font-bold text-lg">جاري المعالجة...</p>
+        <p class="text-gray-400 text-sm mt-2">أول مرة فقط قد تستغرق وقتاً</p>
       </div>
     </div>
 
@@ -221,10 +198,8 @@
     </button>
   </div>
 
-  <!-- السكريبت الأساسي -->
-  <script type="module">
-    import { removeBackground as imglyRemoveBackground } from 'https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.js';
-
+  <!-- سكريبت الواجهة (يعمل فوراً) -->
+  <script>
     let currentFile = null;
 
     window.showScreen = function(screenId) {
@@ -248,6 +223,11 @@
       }
     }
 
+    lucide.createIcons();
+  </script>
+
+  <!-- سكريبت الذكاء الاصطناعي (يُحمّل فقط عند الحاجة) -->
+  <script type="module">
     window.removeBackground = async function() {
       if (!currentFile) {
         alert('الرجاء اختيار صورة أولاً');
@@ -265,25 +245,24 @@
       btn.classList.add('opacity-50');
 
       try {
-        const blob = await imglyRemoveBackground(currentFile);
+        // تحميل المكتبة الثقيلة الآن فقط
+        const { removeBackground } = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/browser.js');
+        
+        const blob = await removeBackground(currentFile);
         const url = URL.createObjectURL(blob);
         
         img.src = url;
         img.classList.remove('hidden');
-        loading.classList.add('hidden');
-        loading.classList.remove('flex');
       } catch (error) {
-        alert('حدث خطأ: ' + error.message);
-        loading.classList.add('hidden');
-        loading.classList.remove('flex');
+        alert('حدث خطأ أثناء المعالجة. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.\n\nتفاصيل الخطأ: ' + error.message);
         img.classList.remove('hidden');
       } finally {
+        loading.classList.add('hidden');
+        loading.classList.remove('flex');
         btn.disabled = false;
         btn.classList.remove('opacity-50');
       }
     }
-
-    lucide.createIcons();
   </script>
 </body>
 </html>
